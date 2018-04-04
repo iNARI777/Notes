@@ -50,7 +50,7 @@ Java堆也是垃圾收集和管理的主要区域。Java堆在空间上可以不
 
 #### 1.5 方法区(Method Area)
 
-方法区是一块线程共享的区域，方法区类似于传统编程语言的存储编译后的代码的存储空间，或者是操作系统的“text”段。
+方法区是一块线程共享的区域，方法区类似于传统编程语言的存储编译后的代码的存储空间，或者是操作系统的“text”段。习惯于HotSpot的程序员可能喜欢将方法区成为永久代，这是因为HotSpot将GC分代收集扩展至了方法区，因此将方法区实现为永久代。
 
 它存储了每个类的结构，比如运行时常量池、静态域、方法数据以及方法和构造器的代码。
 
@@ -62,9 +62,9 @@ Java堆也是垃圾收集和管理的主要区域。Java堆在空间上可以不
 
 >异常：在创建类和接口的时候，如果运行时常量池需要的空间比JVM分配给方法区的空间还要大的话，JVM会抛出OutOfMemoryError
 >
->来源：https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.5.4
+>来源:[JVMS-2.5.4](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.5.4)
 
-扩展：字符串与常量池-https://blog.csdn.net/sugar_rainbow/article/details/68150249
+扩展：[字符串与常量池](https://blog.csdn.net/sugar_rainbow/article/details/68150249)
 
 对这个帖子的内容进行一下精简：
 
@@ -293,4 +293,4 @@ G1是一个面向服务器的垃圾收集器，其目标是替换掉JDK1.5中的
 
 至此，所有的垃圾收集器就介绍完毕了。
 
-> 题外话：关于Minor GC、Major GC和Full GC见http://www.importnew.com/15820.html
+> 题外话：关于Minor GC、Major GC和Full GC见[这里](http://www.importnew.com/15820.html)。
