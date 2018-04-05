@@ -1,3 +1,6 @@
+# MySQL优化汇总
+作者：[whlmpower](https://github.com/whlmpower)
+
 ***写在前面：*** 对于数据库优化问题的回答
 ***我觉得可以从以下几个方面入手：***   
 1. 优化SQL的一般步骤，通过**show status**，**explain, show profile, trace** 等指令  
@@ -63,7 +66,7 @@ null 不需要进行扫描就能得到结果
 
 #### 3.3 优化order by
 **3.3.1 Mysql中两种排序方式**   
-1. 通过有序索引扫描返回有序数据。 Explain 时 使用using index。 
+1. 通过有序索引扫描返回有序数据。 Explain 时 使用using index。
 2. 第二种是对返回数据进行排序，通常所说的FileSort排序，所有不是通过索引值直接返回排序结果的都是Filesort 排序。
 
 FileSort 是通过相应的排序算法，将取得的数据放在sort_buffer_size系统变量设置的内存排序区中进行排序，如果内存装载不下，它就会在磁盘的数据进行分块，在将各个数据库进行排序，然后合并成有序的结果集。sort_buffer_size线程独占，Mysql中存在多个sort_buffer 排序区
@@ -103,7 +106,7 @@ where 中 条件与order by 不同
     explain select * from customer where customer_id not in (select customer_id from payment)
 ````
 ````sql
-    explain select * from customer a left join payment b on a.customer.id = b.customer.id where b.constomer.id is null 
+    explain select * from customer a left join payment b on a.customer.id = b.customer.id where b.constomer.id is null
 ````
 
 
