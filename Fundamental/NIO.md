@@ -76,7 +76,7 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 
 ![](images/nio/5.gif)
 
-* 4. 现在我们要将数据写到输出通道中。在这之前，我们必须调用 flip() 方法。这个方法做两件非常重要的事：**将limit置为position**并**将position置为0**，之后我们才能够往缓冲区中写数据：
+* 4. 现在我们要将数据写到输出通道中。在这之前，我们必须调用 flip() 方法。这个方法做两件非常重要的事：**将limit置为position**并**将position置为0**，之后我们才能够往缓冲区中写数据，`clear()`和`flip()`可以让`Buffer`在读和写之间切换：
 
 ![](images/nio/6.gif)
 
@@ -91,3 +91,77 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 * 7. 最后我们需要调用`clear()`函数来让几个状态变量回复原来的状态，之后就可以进行下一轮操作了：
 
 ![](images/nio/3.gif)
+
+### 2.2 访问方法
+
+为了访问或者想缓冲区中放入数据，我们还需要访问缓冲区的方法，下面以`ByteBuffer`为例，`ByteBuffer`有如下几种`get()`方法：
+
+	byte get();
+	ByteBuffer get( byte dst[] );
+	ByteBuffer get( byte dst[], int offset, int length );
+	byte get( int index );
+
+其中前三种方法都是使用`position`和`limit`进行读取，而第四种方法直接绕过了`position`和`limit`，直接对内部数组进行读取且不会影响`position`和`limit`变量。
+
+而`put()`方法与`get()`方法类似，第一个方法 写入（put）单个字节。第二和第三个方法写入来自一个数组的一组字节。第四个方法将数据从一个给定的源 `ByteBuffer` 写入这个 `ByteBuffer`。第五个方法将字节写入缓冲区中特定的 位置 。那些返回 `ByteBuffer` 的方法只是返回调用它们的缓冲区的 `this` 值。
+
+	ByteBuffer put( byte b );
+	ByteBuffer put( byte src[] );
+	ByteBuffer put( byte src[], int offset, int length );
+	ByteBuffer put( ByteBuffer src );
+	ByteBuffer put( int index, byte b );
+
+同样，第五个方法是绕过`position`和`limit`变量直接对`Buffer`内数组进行操作的。
+
+其他基本类型的缓冲区与`ByteBuffer`类型的缓冲区一样，都有等价的`get()`和`put()`方法。但是`ByteBuffer`还有其他类型化的读写方法：
+
+	getByte()
+	getChar()
+	getShort()
+	getInt()
+	getLong()
+	getFloat()
+	getDouble()
+	putByte()
+	putChar()
+	putShort()
+	putInt()
+	putLong()
+	putFloat()
+	putDouble()
+
+## 3. 缓冲区的更多内容
+
+### 3.1 缓冲区的分配
+
+我们可以通过`ByteBuffer`的静态方法`allocate()`来获取，同时也可以使用现有的数组包装成一个`ByteBuffer`:
+	
+	ByteBuffer buffer = ByteBuffer.allocate(1024);
+	
+	byte[] array = new byte[1024];
+	ByteBuffer buffer2 = ByteBuffer.wrap(array);
+
+我们还可以对缓冲区使用`slice()`方法进行分片，比如我们使用上面的`buffer`缓冲区：
+
+	buffer.position(0);
+	buffer.limit(512);
+	ByteBuffer subBuffer = buffer.slice();	// 以原缓冲区的0~511字节做了一个子缓冲区
+
+这样就取出了`buffer`的一部分作为子缓冲区，子缓冲区使用的底层数组是缓冲区数组相应的部分。
+
+### 3.2 只读缓冲区
+
+我们可以调用缓冲区的`asReadOnlyBuffer()`方法返回一个缓冲区的只读对象，但是我们无法将一个只读缓冲区转换成可写的缓冲区。
+
+### 3.3 直接缓冲区
+
+我们可以调用ByteBuffer的allocateDirect()方法来分配直接缓冲区。直接缓冲区的存取速度较一般缓冲区更快，因为JVM每次调用系统IO的时候尽量避免建立中间缓冲区，减少了二次拷贝的性能损耗。
+
+
+
+## 参考资料
+[1] [NIO入门](https://www.ibm.com/developerworks/cn/education/java/j-nio/j-nio.html#ma)
+
+[2] [攻破JAVA NIO技术壁垒](https://blog.csdn.net/u013256816/article/details/51457215)
+
+[3] [Java NIO浅析](https://tech.meituan.com/nio.html)
