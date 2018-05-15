@@ -157,9 +157,85 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 
 我们可以调用ByteBuffer的allocateDirect()方法来分配直接缓冲区。直接缓冲区的存取速度较一般缓冲区更快，因为JVM每次调用系统IO的时候尽量避免建立中间缓冲区，减少了二次拷贝的性能损耗。
 
+## 4. 异步IO
 
+对于我们平时的网络编程，如果使用BIO的话就会有本篇开章时谈到的缺点：过度依赖线程。因此基于NIO的异步编程就成了并发量较高的服务器的一个选择。使用NIO的时候不需要开启新线程就可以监听任何数量通道上的事件。这部分的代码在[这里](images/nio/nio-src/nio/MultiPortEcho.java)。
+
+### 4.1 Selector
+
+异步I/O中的核心对象名为`Selector`。`Selector`就是我们注册对各种 I/O 事件的地方，而且当那些事件发生时，就是这个对象告诉我们所发生的事件。
+
+#### 创建Selector
+
+创建Selector的方法很简单，如下所示。
+
+	Selector selector = Selector.open();
+
+有了`Selector`之后我们就可以在`Selector`上注册`Channel`以及我们感兴趣的事件。`Channel`对象的`register()`方法的第一个参数总是我们的这个`selector`对象。
+
+#### 创建ServerSocketChannel
+
+类似于我们传统网络编程，在服务端需要一个`ServerSocket`一样，我们在使用NIO进行网络编程的时候需要一个`ServerSocketChannel`监听连接，`ServerSocketChannel`的建立方式如下：
+
+	ServerSocketChannel ssc = ServerSocketChannel.open();
+	//将Channel设为非阻塞的，必须为每个套接字通道调用这个方法，否则异步IO无法工作
+	ssc.configureBlocking( false );	
+	
+	ServerSocket ss = ssc.socket();
+	InetSocketAddress address = new InetSocketAddress( ports[i] );
+	ss.bind( address );	//绑定端口
+
+#### 选择键
+
+将新打开的`Channel`注册到`selector`上，把我们要注册的事件也注册到`selector`上，之后会返回一个`SelectorKey`，当我们注册的事件发生的时候，`selector`会通过这个对象通知我们。
+
+	SelectionKey key = ssc.register( selector, SelectionKey.OP_ACCEPT );
+
+#### 内部循环
+
+将通道和事件注册在`selector`上之后，就可以等待连接了，在NIO中，我们使用`selector.select()`这一阻塞方法来等待在`selector`上注册的事件发生。
+
+之后我们就可以通过`selector.selectedKeys()`方法来获得所有已经触发事件的`SelectionKey`对象的**集合**，我们遍历这个返回的**集合**再根据`SelectionKey`对象所触发的事件进行相应操作。
+
+	int num = selector.select();
+ 	
+	Set selectedKeys = selector.selectedKeys();
+	Iterator it = selectedKeys.iterator();
+	 
+	while (it.hasNext()) {
+	     SelectionKey key = (SelectionKey)it.next();
+	     // ... deal with I/O event ...
+	}
+
+#### 监听新连接
+
+至此，我们只注册了一个`OP_ACCEPT`也就是连接到来的事件，当`select()`阻塞完后说明已经有链接到来，就可以接受新的连接了，这个时候`accept()`方法不会阻塞，因为新的连接已经到了。
+
+得到新的`SocketChannel`之后也需要注册在`selector`上，监听其数据到来的事件。
+
+	while (it.hasNext()) {
+        SelectionKey key = (SelectionKey)it.next();
+
+        if ((key.readyOps() & SelectionKey.OP_ACCEPT)
+          == SelectionKey.OP_ACCEPT) {
+          // 接受新连接
+          ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
+          SocketChannel sc = ssc.accept();
+          sc.configureBlocking( false );
+
+          // 将新连接的通道注册到selector上
+          SelectionKey newKey = sc.register( selector, SelectionKey.OP_READ );
+          it.remove();
+
+          System.out.println( "Got connection from "+sc );
+        }
+
+到后面新连接的`OP_READY`事件到来后使用其他方法进行处理。
+
+至此，对`Selector`的用法的介绍就结束了。
 
 ## 参考资料
+
 [1] [NIO入门](https://www.ibm.com/developerworks/cn/education/java/j-nio/j-nio.html#ma)
 
 [2] [攻破JAVA NIO技术壁垒](https://blog.csdn.net/u013256816/article/details/51457215)
