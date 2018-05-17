@@ -17,3 +17,13 @@
 ### 2. OAuth认证过程
 
 具体过程见[这里](https://www.barretlee.com/blog/2016/01/10/oauth2-introduce/)和[这里](https://www.zhihu.com/question/19781476)以及[这里](https://blog.csdn.net/seccloud/article/details/8192707)。
+
+### 3. ICMP协议
+
+ICMP主要有两大类型报文，一种是**查询报文**，一种是**差错报文**。在对差错报文进行响应的时候永远不会产生另一个差错报文，否则就有可能有循环产生差错报文的情况发生。
+
+ICMP报头如下图所示，结构很简单。
+
+![](images/network/1.jpg)
+
+查询报文和差错报文中还有很多种具体类型的报文。报文的具体类型由ICMP报文报头中的8位类型和8位代码共同决定。（各种类型见《TCP/IP详解（卷1）》P51）
