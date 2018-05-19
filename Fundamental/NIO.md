@@ -76,7 +76,7 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 
 ![](images/nio/5.gif)
 
-* 4. 现在我们要将数据写到输出通道中。在这之前，我们必须调用 flip() 方法。这个方法做两件非常重要的事：**将limit置为position**并**将position置为0**，之后我们才能够往缓冲区中写数据：
+* 4. 现在我们要将数据写到输出通道中。在这之前，我们必须调用 flip() 方法。这个方法做两件非常重要的事：**将limit置为position**并**将position置为0**，之后我们才能够往缓冲区中写数据，`clear()`和`flip()`可以让`Buffer`在读和写之间切换：
 
 ![](images/nio/6.gif)
 
@@ -91,3 +91,153 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 * 7. 最后我们需要调用`clear()`函数来让几个状态变量回复原来的状态，之后就可以进行下一轮操作了：
 
 ![](images/nio/3.gif)
+
+### 2.2 访问方法
+
+为了访问或者想缓冲区中放入数据，我们还需要访问缓冲区的方法，下面以`ByteBuffer`为例，`ByteBuffer`有如下几种`get()`方法：
+
+	byte get();
+	ByteBuffer get( byte dst[] );
+	ByteBuffer get( byte dst[], int offset, int length );
+	byte get( int index );
+
+其中前三种方法都是使用`position`和`limit`进行读取，而第四种方法直接绕过了`position`和`limit`，直接对内部数组进行读取且不会影响`position`和`limit`变量。
+
+而`put()`方法与`get()`方法类似，第一个方法 写入（put）单个字节。第二和第三个方法写入来自一个数组的一组字节。第四个方法将数据从一个给定的源 `ByteBuffer` 写入这个 `ByteBuffer`。第五个方法将字节写入缓冲区中特定的 位置 。那些返回 `ByteBuffer` 的方法只是返回调用它们的缓冲区的 `this` 值。
+
+	ByteBuffer put( byte b );
+	ByteBuffer put( byte src[] );
+	ByteBuffer put( byte src[], int offset, int length );
+	ByteBuffer put( ByteBuffer src );
+	ByteBuffer put( int index, byte b );
+
+同样，第五个方法是绕过`position`和`limit`变量直接对`Buffer`内数组进行操作的。
+
+其他基本类型的缓冲区与`ByteBuffer`类型的缓冲区一样，都有等价的`get()`和`put()`方法。但是`ByteBuffer`还有其他类型化的读写方法：
+
+	getByte()
+	getChar()
+	getShort()
+	getInt()
+	getLong()
+	getFloat()
+	getDouble()
+	putByte()
+	putChar()
+	putShort()
+	putInt()
+	putLong()
+	putFloat()
+	putDouble()
+
+## 3. 缓冲区的更多内容
+
+### 3.1 缓冲区的分配
+
+我们可以通过`ByteBuffer`的静态方法`allocate()`来获取，同时也可以使用现有的数组包装成一个`ByteBuffer`:
+	
+	ByteBuffer buffer = ByteBuffer.allocate(1024);
+	
+	byte[] array = new byte[1024];
+	ByteBuffer buffer2 = ByteBuffer.wrap(array);
+
+我们还可以对缓冲区使用`slice()`方法进行分片，比如我们使用上面的`buffer`缓冲区：
+
+	buffer.position(0);
+	buffer.limit(512);
+	ByteBuffer subBuffer = buffer.slice();	// 以原缓冲区的0~511字节做了一个子缓冲区
+
+这样就取出了`buffer`的一部分作为子缓冲区，子缓冲区使用的底层数组是缓冲区数组相应的部分。
+
+### 3.2 只读缓冲区
+
+我们可以调用缓冲区的`asReadOnlyBuffer()`方法返回一个缓冲区的只读对象，但是我们无法将一个只读缓冲区转换成可写的缓冲区。
+
+### 3.3 直接缓冲区
+
+我们可以调用ByteBuffer的allocateDirect()方法来分配直接缓冲区。直接缓冲区的存取速度较一般缓冲区更快，因为JVM每次调用系统IO的时候尽量避免建立中间缓冲区，减少了二次拷贝的性能损耗。
+
+## 4. 异步IO
+
+对于我们平时的网络编程，如果使用BIO的话就会有本篇开章时谈到的缺点：过度依赖线程。因此基于NIO的异步编程就成了并发量较高的服务器的一个选择。使用NIO的时候不需要开启新线程就可以监听任何数量通道上的事件。这部分的代码在[这里](images/nio/nio-src/nio/MultiPortEcho.java)。
+
+### 4.1 Selector
+
+异步I/O中的核心对象名为`Selector`。`Selector`就是我们注册对各种 I/O 事件的地方，而且当那些事件发生时，就是这个对象告诉我们所发生的事件。
+
+#### 创建Selector
+
+创建Selector的方法很简单，如下所示。
+
+	Selector selector = Selector.open();
+
+有了`Selector`之后我们就可以在`Selector`上注册`Channel`以及我们感兴趣的事件。`Channel`对象的`register()`方法的第一个参数总是我们的这个`selector`对象。
+
+#### 创建ServerSocketChannel
+
+类似于我们传统网络编程，在服务端需要一个`ServerSocket`一样，我们在使用NIO进行网络编程的时候需要一个`ServerSocketChannel`监听连接，`ServerSocketChannel`的建立方式如下：
+
+	ServerSocketChannel ssc = ServerSocketChannel.open();
+	//将Channel设为非阻塞的，必须为每个套接字通道调用这个方法，否则异步IO无法工作
+	ssc.configureBlocking( false );	
+	
+	ServerSocket ss = ssc.socket();
+	InetSocketAddress address = new InetSocketAddress( ports[i] );
+	ss.bind( address );	//绑定端口
+
+#### 选择键
+
+将新打开的`Channel`注册到`selector`上，把我们要注册的事件也注册到`selector`上，之后会返回一个`SelectorKey`，当我们注册的事件发生的时候，`selector`会通过这个对象通知我们。
+
+	SelectionKey key = ssc.register( selector, SelectionKey.OP_ACCEPT );
+
+#### 内部循环
+
+将通道和事件注册在`selector`上之后，就可以等待连接了，在NIO中，我们使用`selector.select()`这一阻塞方法来等待在`selector`上注册的事件发生。
+
+之后我们就可以通过`selector.selectedKeys()`方法来获得所有已经触发事件的`SelectionKey`对象的**集合**，我们遍历这个返回的**集合**再根据`SelectionKey`对象所触发的事件进行相应操作。
+
+	int num = selector.select();
+ 	
+	Set selectedKeys = selector.selectedKeys();
+	Iterator it = selectedKeys.iterator();
+	 
+	while (it.hasNext()) {
+	     SelectionKey key = (SelectionKey)it.next();
+	     // ... deal with I/O event ...
+	}
+
+#### 监听新连接
+
+至此，我们只注册了一个`OP_ACCEPT`也就是连接到来的事件，当`select()`阻塞完后说明已经有链接到来，就可以接受新的连接了，这个时候`accept()`方法不会阻塞，因为新的连接已经到了。
+
+得到新的`SocketChannel`之后也需要注册在`selector`上，监听其数据到来的事件。
+
+	while (it.hasNext()) {
+        SelectionKey key = (SelectionKey)it.next();
+
+        if ((key.readyOps() & SelectionKey.OP_ACCEPT)
+          == SelectionKey.OP_ACCEPT) {
+          // 接受新连接
+          ServerSocketChannel ssc = (ServerSocketChannel)key.channel();
+          SocketChannel sc = ssc.accept();
+          sc.configureBlocking( false );
+
+          // 将新连接的通道注册到selector上
+          SelectionKey newKey = sc.register( selector, SelectionKey.OP_READ );
+          it.remove();
+
+          System.out.println( "Got connection from "+sc );
+        }
+
+到后面新连接的`OP_READY`事件到来后使用其他方法进行处理。
+
+至此，对`Selector`的用法的介绍就结束了。
+
+## 参考资料
+
+[1] [NIO入门](https://www.ibm.com/developerworks/cn/education/java/j-nio/j-nio.html#ma)
+
+[2] [攻破JAVA NIO技术壁垒](https://blog.csdn.net/u013256816/article/details/51457215)
+
+[3] [Java NIO浅析](https://tech.meituan.com/nio.html)

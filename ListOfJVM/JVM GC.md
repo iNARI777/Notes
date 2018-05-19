@@ -254,7 +254,7 @@ Serial收集器 VS ParNew收集器：
 
 ![](image/9.png)
 
-特性： Parallel Old是Parallel Scavenge收集器的老年代版本，使用多线程和“标记－整理”算法。
+特性： Parallel Old是ParNew收集器的老年代版本，使用多线程和“标记－整理”算法。
 
 应用场景： 在注重吞吐量以及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge加Parallel Old收集器。它在Server模式下可以代替Serial Old与Parallel Scanvage配合。
 
@@ -295,3 +295,5 @@ G1是一个面向服务器的垃圾收集器，其目标是替换掉JDK1.5中的
 至此，所有的垃圾收集器就介绍完毕了。
 
 > 题外话：关于Minor GC、Major GC和Full GC见[这里](http://www.importnew.com/15820.html)。
+
+关于GC优化方法可以看[这里](https://tech.meituan.com/jvm_optimize.html)美团的技术文章。主要讲了改变新生代或老年代大小的优化方法，如果短期对象多的话增加新生代后GC时间不会明显增大，但是MinorGC的频率会明显降低（虽然扫描对象的时间会变长，但是对象复制的时间不一定变长，因为很多对象活不到第二次收集）。
