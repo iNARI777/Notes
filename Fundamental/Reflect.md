@@ -59,6 +59,37 @@ Class是java.lang包中基本的一个类，其作用是保存Java类中的信�
 > 2. ParameterizedType：表示参数化的类型，有原始类型和具体的类型参数，比如：List<String>
 > 3. WildcardType：表示通配符类型，比如：?, ? extends Number, ? super Integer
 
+### 2.2 Field
+
+`Field`类的对象提供了有关类或者对象的域的相关信息。在`Class`类中获取`Field`的有关方法如下图所示：
+
+![](images/reflect/3.png)
+
+`Field`中与获得改变对象中的域有关的方法如下：
+
+![](images/reflect/4.png)
+
+### 2.3 Method
+
+`Method`提供关于类或接口上单独某个方法（以及如何访问该方法）的信息，所反映的方法可能是类方法或实例方法（包括抽象方法）。下面是`Class`类获取`Method`对象相关的方法：
+
+![](images/reflect/5.png)
+
+在`Method`中与调用方法和获得方法信息有关的方法如下图所示：
+
+![](images/reflect/6.png)
+
+### 2.4 Array
+
+反射包中还有一个可以动态操作数组的类`Array`。其中常用的方法如下（都是静态方法）：
+
+![](images/reflect/7.png)
+
+### 注意
+
+由于从`Class`对象处获得的`Constructor`、`Field`和`Method`都是同一个`class`对象的，所以在对相应信息进行修改的时候，要指明对哪个对象进行修改。比如`Field`的`set()`方法就需要指明**要修改成的值**之外还要指明**域所在的对象**，否则不知道要对哪个具体类型的对象进行修改。
+
+而Array类是中主要方法都是静态的，所以可以将这个类看做一个工具类来使用。
 
 ## 参考资料
 
@@ -66,4 +97,4 @@ Class是java.lang包中基本的一个类，其作用是保存Java类中的信�
 
 [2] [浅谈Java中的Class类](https://blog.csdn.net/my_truelove/article/details/51289217)
 
-[3] [深入理解Java类型信息与反射机制](https://blog.csdn.net/javazejian/article/details/70768369)
+[3] [深入理解Java类型信息与反射机制](https://blog.csdn.net/javazejian/article/details/70768369)(本文中实例较多，可以帮助理解)
