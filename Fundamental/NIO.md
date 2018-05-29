@@ -135,9 +135,9 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 ### 3.1 缓冲区的分配
 
 我们可以通过`ByteBuffer`的静态方法`allocate()`来获取，同时也可以使用现有的数组包装成一个`ByteBuffer`:
-	
+
 	ByteBuffer buffer = ByteBuffer.allocate(1024);
-	
+
 	byte[] array = new byte[1024];
 	ByteBuffer buffer2 = ByteBuffer.wrap(array);
 
@@ -179,8 +179,8 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 
 	ServerSocketChannel ssc = ServerSocketChannel.open();
 	//将Channel设为非阻塞的，必须为每个套接字通道调用这个方法，否则异步IO无法工作
-	ssc.configureBlocking( false );	
-	
+	ssc.configureBlocking( false );
+
 	ServerSocket ss = ssc.socket();
 	InetSocketAddress address = new InetSocketAddress( ports[i] );
 	ss.bind( address );	//绑定端口
@@ -198,10 +198,10 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 之后我们就可以通过`selector.selectedKeys()`方法来获得所有已经触发事件的`SelectionKey`对象的**集合**，我们遍历这个返回的**集合**再根据`SelectionKey`对象所触发的事件进行相应操作。
 
 	int num = selector.select();
- 	
+
 	Set selectedKeys = selector.selectedKeys();
 	Iterator it = selectedKeys.iterator();
-	 
+
 	while (it.hasNext()) {
 	     SelectionKey key = (SelectionKey)it.next();
 	     // ... deal with I/O event ...
@@ -233,6 +233,32 @@ Java NIO的非阻塞模式，使一个线程从某通道发送请求读取数据
 到后面新连接的`OP_READY`事件到来后使用其他方法进行处理。
 
 至此，对`Selector`的用法的介绍就结束了。
+
+## 5. 补充：IO多路复用
+
+IO多路复用的意思是在单个线程通过记录跟踪每一个Sock(I/O流)的状态来同时管理多个I/O流。 发明它的原因，是尽量多的提高服务器的吞吐能力。
+
+**三个系统函数select、poll、epoll**：
+
+这三个函数共同存在的原因是三个函数实现的时间不同，后一个都对前一个做出了一些改进。
+
+关于select：
+
+* select 会修改传入的参数数组，这个对于一个需要调用很多次的函数，是非常不友好的。
+* select 如果任何一个sock(I/O stream)出现了数据，select 仅仅会返回，但是并不会告诉你是那个sock上有数据，于是你只能自己一个一个的找。
+* select 只能监视1024个链接， 这个跟草榴没啥关系哦，linux 定义在头文件中的，参见FD_SETSIZE。
+* select 不是线程安全的，如果你把一个sock加入到select, 然后突然另外一个线程发现，尼玛，这个sock不用，要收回，这个select不支持的。
+
+关于poll：
+
+* poll 去掉了1024个链接的限制。
+* poll 从设计上来说，不再修改传入数组，不过这个要看你的平台了。
+* poll仍然是线程不安全的。
+
+关于epoll：
+
+* epoll 现在是线程安全的。
+* epoll 现在不仅告诉你sock组里面数据，还会告诉你具体哪个sock有数据
 
 ## 参考资料
 
