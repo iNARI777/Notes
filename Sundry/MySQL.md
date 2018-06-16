@@ -56,3 +56,24 @@ type列的内容有以下几项，性能依次提高：
 MVCC为多版本并发控制，在原理上是在通过保留多个版本的数据，并保存行数据的**开始版本号**以及**过期版本号**，配合上事务的版本号来保证读的时候读相应版本的数据的。而在实现上是直接使用undo log来实现的，所以其实现上并没有额外的开销。
 
 值得注意的是在**提交读**隔离级别下，MVCC总是读被锁定行中版本号最新的一个；而在**可重复读**隔离级别下，MVCC总是读版本号与事务版本号相同的一个。
+
+## 4. MySQL的Redo log和Undo log
+
+### 4.1 Undo log
+
+undo日志用于存放数据修改被修改前的值，假设修改 `tba` 表中`id=2`的行数据，把`Name='B'`修改为`Name = 'B2'` ，那么undo日志就会用来存放`Name='B'`的记录，如果这个修改出现异常，可以使用undo日志来实现回滚操作，保证事务的一致性。
+
+对数据的变更操作，主要来自 `INSERT UPDATE DELETE`，而UNDO LOG中分为两种类型，一种是 INSERT_UNDO（INSERT操作），记录插入的唯一键值；一种是 UPDATE_UNDO（包含UPDATE及DELETE操作），记录修改的唯一键值以及old column记录。
+
+### 4.2 Redo log
+
+当数据库对数据做修改的时候，需要把数据页从磁盘读到buffer pool中，然后在buffer pool中进行修改，那么这个时候buffer pool中的数据页就与磁盘上的数据页内容不一致，称buffer pool的数据页为dirty page 脏数据，如果这个时候发生非正常的DB服务重启，那么这些数据还没在内存，并没有同步到磁盘文件中（注意，同步到磁盘文件是个随机IO），也就是会发生数据丢失，如果这个时候，能够在有一个文件，当buffer pool 中的data page变更结束后，把相应修改记录记录到这个文件（注意，记录日志是顺序IO），那么当DB服务发生crash的情况，恢复DB的时候，也可以根据这个文件的记录内容，重新应用到磁盘文件，数据保持一致。
+
+这个文件就是redo log，用于记录数据修改后的记录，顺序记录。它可以带来这些好处：
+
+* 当buffer pool中的dirty page 还没有刷新到磁盘的时候，发生crash，启动服务后，可通过redo log找到需要重新刷新到磁盘文件的记录；
+* buffer pool中的数据直接flush到disk file，是一个随机IO，效率较差，而把buffer pool中的数据记录到redo log，是一个顺序IO，可以提高事务提交的速度。
+
+**Redo log和Binary log的区别：**
+
+redo log 是存储引擎层产生的，而binary log是数据库层产生的。假设一个大事务，对tba做10万行的记录插入，在这个过程中，一直不断的往redo log顺序记录，而binary log不会记录，知道这个事务提交，才会一次写入到binary log文件中。binary log的记录格式有3种：row，statement跟mixed，不同格式记录形式不一样。
