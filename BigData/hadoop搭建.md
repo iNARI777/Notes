@@ -126,3 +126,7 @@ hadoop-2.8.4.tar.gz
 想要操作HDFS中的文件，需要像操作Linux文件系统类似的命令。主要是使用`hdfs dfs -COMMAND`进行操作。
 
 具体支持的指令可以通过官网或者输入`hdfs dfs`进行查询。
+
+#### 2.4.3 使用Java API远程进行HDFS操作
+
+这一部分的代码见[这里](src/AppTest.java)。
