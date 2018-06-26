@@ -43,11 +43,12 @@ hadoop-2.8.4.tar.gz
     &lt;configuration>
         &lt;property>
             &lt;name>fs.defaultFS&lt;/name>
-            &lt;value>hdfs://localhost:8020&lt;/value>
+            &lt;value>hdfs://<服务器的IP地址>:8020&lt;/value>
         &lt;/property>
     &lt;/configuration>
 
-> 注：官网上写的端口号是9000，但是我没用这个端口，因为看的视频里说那个是Hadoop 1.x中使用的端口，因此我就没有试验9000端口。
+> 注：官网上写的端口号是9000，但是我没用这个端口，因为看的视频里说那个是Hadoop 1.x中使用的端口，因此我就没有试验9000端口。地址千万别写成`localhost`！
+刚开始我特么脑抽写错了(╯‵□′)╯︵┻━┻
 
     &lt;configuration>
         &lt;property>
@@ -77,9 +78,9 @@ hadoop-2.8.4.tar.gz
 
 关于`authorized_keys`的相关内容，见这篇博客：[ssh-keygen的使用方法及配置authorized_keys两台linux机器相互认证](https://blog.csdn.net/xiaoyida11/article/details/51557174)。
 
-### 2.4 启动
+### 2.4 HDFS的启动及使用
 
-#### 2.4.1 MapReduce的准备
+#### 2.4.1 HDFS的启动
 
 首先格式化HDFS文件系统：
 
@@ -120,4 +121,8 @@ hadoop-2.8.4.tar.gz
 
     sbin/stop-dfs.sh
 
-#### 2.4.2
+#### 2.4.2 HDFS的相关命令
+
+想要操作HDFS中的文件，需要像操作Linux文件系统类似的命令。主要是使用`hdfs dfs -COMMAND`进行操作。
+
+具体支持的指令可以通过官网或者输入`hdfs dfs`进行查询。
