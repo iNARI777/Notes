@@ -130,3 +130,32 @@ hadoop-2.8.4.tar.gz
 #### 2.4.3 使用Java API远程进行HDFS操作
 
 这一部分的代码见[这里](src/AppTest.java)。
+
+
+### 2.5 YARN的配置及启动
+
+要启动 YARN 还需要修改几个配置文件：
+
+首先在`etc/hadoop/mapred-site.xml`中添加：
+
+    &lt;configuration>
+        &lt;property>
+            &lt;name>mapreduce.framework.name&lt;/name>
+            &lt;value>yarn&lt;/value>
+        &lt;/property>
+    &lt;/configuration>
+
+之后还要改`etc/hadoop/yarn-site.xml`：
+
+    &lt;configuration>
+        &lt;property>
+            &lt;name>yarn.nodemanager.aux-services&lt;/name>
+            &lt;value>mapreduce_shuffle&lt;/value>
+        &lt;/property>
+    &lt;/configuration>
+
+最后运行`sbin/start-yarn.sh`就可以运行YARN了。
+
+可以在浏览器中看`http://<server>:8088`来看 ResourceManager 的运行状态。
+
+这个时候使用`jps`来看的时候会多出来 `ResourceManager` 和 `NodeManager` 两个进程。
