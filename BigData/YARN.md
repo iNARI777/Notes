@@ -20,13 +20,13 @@ RM 和 NM 两者组成了数据计算的框架。 RM 负责根据**应用（ App
 
 > Container 用于执行特定 Application 的一部分任务，每个 Container 都有资源的限制（比如 CPU 和内存等），它可以是一个 Unix 进程，也可以是一个 Linux cgroup。
 
-> 对于 RM 还有一点要补充，RM 是由 ApplicationsManager（注意有个 s）和 Scheduler 两个部分组成的。 
+> 对于 RM 还有一点要补充，RM 是由 ApplicationsManager（注意有个 s）和 Scheduler 两个部分组成的。
 > * Scheduler： 只负责对资源进行分配（是 pluggable 的，根据实现的不同有不同的分配策略，比如 CapacityScheduler ， FairScheduler 和 FIFOScheduler 等）。
 > * ApplicationsManager： 负责接收客户端的任务请求，与第一个 Container 协商，在其上启动一个 AM 实例，并且提供 AM 的崩溃重启服务。而 AM 负责与 Scheduler 协商分配相应的 Container 并追踪他们的状态。
 
 **运行流程：**
 
-在 YARN 运作的过程中，首先启动一个 Application，这个时候会有一个相应的 AM 启动，AM 首先要和 RM 协商资源的分配情况，资源分配好之后 AM 就直接与 NM 进行协作，执行并对 Task 进行监控。流程如下图所示：
+在 YARN 运作的过程中，首先客户端向 RM 提出一个计算请求，启动一个 Application，这个时候 RM 会根据 Scheduler 进行节点的资源分配，同时 ApplicationsManager 与第一个 Container 协商产生一个 AM。AM 首先要和 RM 协商资源的分配情况，资源分配好之后 AM 就直接与 NM 进行协作，执行并对 Task 进行监控。流程如下图所示：
 
 ![](images/yarn/2.gif)
 
