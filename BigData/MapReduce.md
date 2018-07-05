@@ -41,10 +41,16 @@ MapReduce 2.x 与 MapReduce 1.x 的架构相比发生了很大的变化，2.x �
 
 ## 3. Hadoop 中的序列化
 
-在第一部分中，我们看到了
+Hadoop 节点之间的通信都是有 RPC 来完成的，所以必须要是用一定的序列化手段将我们的信息编程可以在网络上传输并能够在远端节点换源。
 
-# 参考资料
+Hadoop 使用了自己的一套序列化机制，要求我们在进行 MapReduce 的时候传入的键值对都实现 `Writable` 接口。Hadoop 为我们提供了多种可序列化的数据类型的默认实现，这部分可以看这篇[博客](https://blog.csdn.net/scgaliguodong123_/article/details/46385761)。
+
+## 参考资料
 
 [1] [Apache Hadoop 官网](http://hadoop.apache.org/docs/r2.8.4/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html)
 
 [2] [MapReduce 详解](https://blog.csdn.net/q739404976/article/details/73188645)
+
+[3] Hadoop 权威指南（第 4 版）
+
+附上一个对 MapReduce 和 Spark 的总结：[这里](https://www.zhihu.com/question/26568496/answer/41608400)
