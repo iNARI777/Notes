@@ -12,4 +12,4 @@
 
 > 关于 cron 表达式可以看这片[文章](https://blog.csdn.net/jack_bob/article/details/78786740)。
 
-* Kubernetes 相关知识可以看[这里](https://www.kubernetes.org.cn/97.html)/[这里](http://www.dockone.io/article/932)和[这里](https://www.kubernetes.org.cn/tags/cicd)。
+* Kubernetes （又叫 K8S ）相关知识可以看[这里](https://www.kubernetes.org.cn/97.html)/[这里](http://www.dockone.io/article/932)和[这里](https://www.kubernetes.org.cn/tags/cicd)。
