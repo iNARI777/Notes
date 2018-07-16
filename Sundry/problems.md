@@ -13,3 +13,11 @@
 > 关于 cron 表达式可以看这片[文章](https://blog.csdn.net/jack_bob/article/details/78786740)。
 
 * Kubernetes 相关知识可以看[这里](https://www.kubernetes.org.cn/97.html)/[这里](http://www.dockone.io/article/932)和[这里](https://www.kubernetes.org.cn/tags/cicd)。
+
+* MyBatis 中查询结果不存在的时候，查询方法中返回 null 还是一个 size 为 0 的 List。
+
+Spring 笔记
+
+* 依赖注入的例子：CD 机。 IOC 的目的是减少组建与组件之间的耦合，而 AOP 的目的是减少功能与功能之间的耦合。
+* `@Autowired` 可以用在 **域**/**构造方法** 以及 **set方法** 上。但是 set 方法和其他方法其实都是一样的，`@Autowired` 也可以添加在其他方法上，Spring 会自动将与参数类型相同的 bean 配置到参数中去。可以通过 `required=false` 属性来防止没有对应 bean 情况下 Spring 抛出异常的情况，但是这个时候要谨慎对待。
+* 在使用 Java 类进行配置的时候，我们可以在 `@Bean` 标注的方法中使用其他被 `@Bean` 标注的方法，来进行对象依赖的装配，但是这个时候的调用并不会真正的调用这个被 `@Bean` 标注的方法，而是会被拦截，直接从 bean 的对象池获得相应的对象，完成依赖的注入。同时我们也可以不使用这种方法，被 `@Bean` 标注的方法也可以自动将已经注册的 bean 注入到配置方法的参数中。
