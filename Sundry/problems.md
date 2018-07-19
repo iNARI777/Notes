@@ -26,3 +26,17 @@
 * `@RequestBody` 对象转换的机制。
 * 在使用 Mybatis 的时候，`select` 内容转化为对象的时候默认是对对象的 **属性名** 和 **列名** 有要求的，两者名称相同或者驼峰对下划线都可以，否则对象的相关域中无法被注入，得到 `null` 值。但是可以通过 `@Results` 配合 `@Result` 两个注解来完成列域的映射。
 * Spring Boot 打成 jar 包的一个比较简单的方法是直接使用命令行执行 maven 命令 `mvn clean package -Dmaven.test.skip=true` 。
+
+### Jackson
+
+* Jackson 在进行对象到 Json 的转化的时候，默认是只对公共域和 `public` 的 getter 进行转化的。这个时候它会对域的一些字母进行大小写的转化，如果想规定域转化到 Json 之后的名字，可以使用 `@JsonProperty("<name>")` 对其进行规定，这个注解可以加在 **域** 上也可以加在 **getter** 方法上。如果加在了 `private` 域上的话，可能会导致 Jackson 对域和 getter 方法分别进行了转换而导致转换出来的 Json 中有重复的键值对。这个时候可以通过 `@JsonAutoDetect` 来解决这个问题。
+
+> Jackson 默认的字段属性发现规则如下：
+所有被public修饰的字段->所有被public修饰的getter->所有被public修饰的setter
+
+* Jackson 不能自动将 **非静态内部类** 转化成 Json 中的内容。
+* Jackson 不能转化没有域的对象？
+
+### Docker
+
+### Nginx
