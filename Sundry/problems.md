@@ -37,6 +37,4 @@
 * Jackson 不能自动将 **非静态内部类** 转化成 Json 中的内容。
 * Jackson 不能转化没有域的对象？
 
-### Docker
-
 ### Nginx
