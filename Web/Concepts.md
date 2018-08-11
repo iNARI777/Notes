@@ -26,7 +26,7 @@ Cookie 的设置也可以在浏览器端通过 JavaScript 进行设置，。
 
 * expires ：用来设置有效时间
 * domain+path ：共同构成了 URL，这个 URL 用来表示一个 Cookie 能够被哪些 URL 访问。 domain 的默认值为这个 cookie 所在的域名，而 path 的默认值为设置该 cookie 的页面所在的路径。
-* httpOnly ：用来设置该 cookie 只能被 http 请求访问，而 JavaScript 等其他方法无法访问该 cookie。
+* httpOnly ：用来设置该 cookie 只能被 http 请求访问，而 JavaScript 等其他方法无法访问该 cookie 。
 * secure ：这个配置要求服务器支持 https 协议，因为这个配置是用来将 cookie 加密用的。
 
 ## 2. 限流
