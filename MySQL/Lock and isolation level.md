@@ -34,7 +34,25 @@ next-key lock 是前两者的综合，还是前面的例子， next-key lock 就
 
 ## 3. MVCC
 
+多版本并发控制 (Multi Version Concurrency Control, MVCC) ，快照读 (Snapshot Read) 机制，能够通过读取回滚段 (rollback segment) 中数据的历史版本，在事务读取记录的时候不用加锁，以支持超高的并发。使用 InnoDB 的时候，所有的普通 `SELECT` 语句（就是不用 `for update` 和 `in share mode` 显式加锁的）使用的都是快照读。
 
+由于是对回滚段功能的扩展，所以 MVCC 在实现的时候并没有引入额外的空间损耗。
+
+其核心原理是：
+
+（1）写任务发生时，将数据克隆一份，以版本号区分；
+
+（2）写任务操作新克隆的数据，直至提交；
+
+（3）并发读任务可以继续读取旧版本的数据，不至于阻塞。
+
+InnoDB的内核，会对所有row数据增加三个内部属性：
+
+(1)DB_TRX_ID，6字节，记录每一行最近一次修改它的事务ID；
+
+(2)DB_ROLL_PTR，7字节，记录指向回滚段undo日志的指针；
+
+(3)DB_ROW_ID，6字节，单调递增的行ID。
 
 ## 参考资料
 
