@@ -6,6 +6,12 @@
 
 这篇文章使用的 Netty 版本是 `4.1.6 final`。
 
+## ByteBuf 的存储方式
+
+池化与非池化
+
+默认大端法读写
+
 ## ByteBuf 的 slice 和 duplicate 方法
 
 有的时候我们需要在 ByteBuf 的基础上创建一个方便操作的视图，这个时候可能就会用到 ByteBuf 的 `slice()` 或者 `duplicate()`。
@@ -110,3 +116,4 @@ Netty 的 ByteBuf 是通过 **引用计数** 的方式管理的，如果一个 B
 
 那么在调用了 `slice()` 的时候创建的 ByteBuf 调用 `retain()` 和 `release()` 的时候改变的是谁的 `refCnt` 呢？
 
+在前面我们看到了，调用 `slice()` 的时候新建了一个包装了当前 ByteBuf 的 `UnpooledSlicedByteBuf` ，在调用这个类的 `retain()` 和 `release()` 方法的时候调用的其实是 `AbstractDerivedByteBuf` 这个类的方法，这个方法将这两个操作代理给了底层被包装 ByteBuf 来执行，所以增加的其实是底层 ByteBuf 的 `refCnt` 。
