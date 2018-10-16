@@ -23,21 +23,45 @@
 
 但是我们知道 ByteBuf 是一个接口，那么 `slice()` 是在哪个类中实现的呢？我们看一下下面这个图：
 
-![](images/bytebuf/1.png)
+![](images/bytebuf/2.png)
 
 这个图是 ByteBuf 家族下的一个具体的实现类，ByteBuf 这个抽象类定义了所有 ByteBuf 中应该实现的公共方法。
 
-slice() 方法的实现是在 `AbstractByteBuf` 这一级实现的。这一级还实现了读写 ByteBuf 的一些功能。
+slice() 方法的实现是在 `AbstractByteBuf` 这一级实现的。这一级还实现了读写 ByteBuf 的一些功能，但是真正底层的数组并没有在这里定义，真正的读写方法（`_getByte()` 等）都是抽象方法，需要子类去实现。在 `AbstractByteBuf` 中其实是创建了一个 `UnpooledSlicedByteBuf` ，如下所示：
+
+	public ByteBuf slice(int index, int length) {
+        return new UnpooledSlicedByteBuf(this, index, length);
+    }
+
+从名字上来看是新建了一个 **非池化** 的 ByteBuf ，这个 ByteBuf 包装了当前的 ByteBuf ，可以通过 `unwrap()` 方法来获得被包装的 ByteBuf 。在这个非池化的 ByteBuf 中底层的存储用的实际上就是 `unwrap()` 得到的被包装的 ByteBuf ，但是自己维护了一个变量来维护自己的 `readerIndex` 和 `writerIndex` ，这个变量就是 `AbstractUnpooledSlicedByteBuf` 中的 `adjustment` 。
+
+在调用 `AbstractUnpooledSlicedByteBuf` 中的 `_getByte()` 等方法的时候实际上是这样的：
+
+	protected byte _getByte(int index) {
+        return unwrap().getByte(idx(index));
+    }
+
+而 `idx()` 是这样的：
+
+	final int idx(int index) {
+        return index + adjustment;
+    }
+
+这样就是通过 `adjustment` 控制了访问底层 ByteBuf 的范围。
 
 ## ByteBuf 的引用计数
 
 由于 Netty 使用了堆外内存，而堆外内存是不被 jvm 直接管理的，也就是说申请到的内存无法被垃圾回收器直接回收，所以需要我们手动回收。有点类似于c语言里面，申请到的内存必须手工释放，否则会造成内存泄漏。
 
-Netty 的 ByteBuf 是通过 **引用计数** 的方式管理的，如果一个 ByteBuf 没有地方被引用到，需要回收底层内存。默认情况下，当创建完一个 ByteBuf，它的引用为1，然后每次调用 retain() 方法， 它的引用就加一， release() 方法原理是将引用计数减一，减完之后如果发现引用计数为0，则直接回收 ByteBuf 底层的内存。
+Netty 的 ByteBuf 是通过 **引用计数** 的方式管理的，如果一个 ByteBuf 没有地方被引用到，需要回收底层内存。默认情况下，当创建完一个 ByteBuf，它的引用为 1 ，然后每次调用 retain() 方法， 它的引用就加一， release() 方法原理是将引用计数减一，减完之后如果发现引用计数为 0 ，则直接回收 ByteBuf 底层的内存。
+
+> 调用了 `slice()` 和 `duplicate()` 之后记得给原来的 ByteBuf 的 `retain()` 方法，在销毁的时候调用 `release()` 方法。
 
 这部分功能的实现就是靠 ByteBuf 中的域 `refCnt` 以及对这个域进行控制的方法 `retain()` 和 `release()` 来实现的。`retain()` 方法可以将 `refCnt` 的值加 1 ，代表底层的 ByteBuf 多了一个引用，而 `release()` 相反，会减小 `refCnt` 的值，如果值为 0 ，则会释放掉底层的内存。
 
-还是用上面那个图，最顶层的 `ReferenceCounted` 接口定义了引用计数相关的方法，而具体实现引用计数方法的就是这个 `AbstractReferenceCountedByteBuf` 。这里我们就可以看到设计者在设计 ByteBuf 的整套 API 的时候使用的分层设计的思想，不同层次的功能在不同层次中实现，使得整体框架更加易于维护。
+![](images/bytebuf/1.png)
+
+用上面那个图，最顶层的 `ReferenceCounted` 接口定义了引用计数相关的方法，而具体实现引用计数方法的就是这个 `AbstractReferenceCountedByteBuf` 。这里我们就可以看到设计者在设计 ByteBuf 的整套 API 的时候使用的分层设计的思想，不同层次的功能在不同层次中实现，使得整体框架更加易于维护。
 
 ### 具体实现
 
